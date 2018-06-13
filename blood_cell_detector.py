@@ -2,6 +2,9 @@ import os
 import cv2
 import xml.etree.ElementTree as ET
 import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn import svm
+from sklearn.metrics import accuracy_score
 
 # Read all XML files
 path = 'BCCD_Dataset'
@@ -10,7 +13,7 @@ xml_files = [(os.path.join(root, name))
 	for name in files if name.endswith((".xml"))]
 
 # HOG parametrization
-winSize = (32,32)
+winSize = (64,64)
 blockSize = (16,16)
 blockStride = (4,4)
 cellSize = (8,8)
@@ -58,12 +61,23 @@ for t in xml_files:
 			#k = cv2.waitKey(0)
 			#if k == ord('q'):
 			#	break
-print features[0,:], labels[0,:]
-features = np.delete(features, (0), axis=0)
-labels = np.delete(labels, (0), axis=0)
-print features[0,:], labels[0,:]
 
-print features.shape, labels.shape
+features = np.delete(features, (0), axis=0)
+labels = np.delete(labels, (0), axis=0).ravel()
+
+#print features.shape, labels.shape
+
+# Split data for training and testing
+X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.2, random_state=42)
+
+print X_train.shape, y_train.shape
+print X_test.shape, y_test.shape
+
+clf = svm.SVC()
+clf.fit(X_train, y_train)
+
+y_pred = clf.predict(X_test)
+print 'Accuracy: ', accuracy_score(y_test, y_pred)
 '''
 img_files = [(os.path.join(root, name))
 	for root, dirs, files in os.walk(path)
